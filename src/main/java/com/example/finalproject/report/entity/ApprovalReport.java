@@ -14,10 +14,12 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Accident extends ApprovalReport implements Serializable {
-    @Id
-    Long id;
-    public Accident(String title, String description, User user, Point point){
+public class ApprovalReport extends Report implements Serializable {
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
+    ApprovalReport(String title, String description, User user, Point point){
         super(title,description,user,point);
     }
 }

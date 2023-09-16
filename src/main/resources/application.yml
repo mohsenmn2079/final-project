@@ -7,15 +7,16 @@
 #
 spring:
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://localhost:5432/final_project_db
+    driver-class-name: org.postgresql.Driver
     username:
     password:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
         format_sql: true
+        non_contextual_creation: true
