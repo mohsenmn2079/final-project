@@ -1,10 +1,11 @@
 package com.example.finalproject.report.entity;
 
 import com.example.finalproject.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.locationtech.jts.geom.Geometry;
+import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Point;
 
 import java.io.Serializable;
@@ -31,10 +32,11 @@ public class Report implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     User user;
 
-    @Column(nullable = false)
-    Geometry point;
+    @Column(columnDefinition = "geometry(Point,3857)")
+    Point point;
 
     @Column(nullable = false)
     Date activationTime = new Date();

@@ -1,6 +1,7 @@
 package com.example.finalproject.report.Dto;
 
 import com.example.finalproject.report.entity.ReportType;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

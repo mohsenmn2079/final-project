@@ -8,11 +8,11 @@ import org.springframework.data.geo.Point;
 
 public class AccidentMapper {
     public static Accident toEntity(ReportDto reportDto, User user) {
-        return new Accident(
-                reportDto.getTitle()
-                , reportDto.getDescription()
-                , user
-                , reportDto.getPoint()
-                );
+        Accident accident = new Accident();
+        accident.setTitle(reportDto.getTitle());
+        accident.setDescription(reportDto.getDescription());
+        accident.setUser(user);
+        accident.setPoint(reportDto.getPoint());
+        return accident;
     }
 }

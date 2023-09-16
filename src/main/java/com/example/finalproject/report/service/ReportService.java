@@ -40,16 +40,10 @@ public class ReportService {
     }
 
     public List<ReportDto> getAllApprovalReport(){
-        System.out.println("enter service");
-        accidentRepository.findAll();
-//        List<ReportDto> list = reportRepository.getAllApprovalReport()
-//                .stream()
-//                .map(ReportMapper::ToDto)
-//                .toList();
-        System.out.println("back to controller");
-
-        return null;
-
+        return reportRepository.getAllApprovalReport()
+                .stream()
+                .map(ReportMapper::ToDto)
+                .toList();
     }
 //    public void approveReport(Long reportId) {
 //        Report report = reportRepository.findById(reportId)

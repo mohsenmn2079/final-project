@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query("SELECT r FROM Report r WHERE TYPE(r) = Accident ")
-    List<ApprovalReport> getAllApprovalReport();
+    List<Report> getAllApprovalReport();
 }

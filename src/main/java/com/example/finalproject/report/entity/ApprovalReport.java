@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApprovalReport extends Report implements Serializable {
+public class ApprovalReport extends Report{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     ApprovalStatus approvalStatus = ApprovalStatus.PENDING;

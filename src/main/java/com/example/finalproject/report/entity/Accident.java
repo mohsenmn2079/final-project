@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Accident extends ApprovalReport implements Serializable {
+public class Accident extends ApprovalReport {
     @Id
     Long id;
     public Accident(String title, String description, User user, Point point){
