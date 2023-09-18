@@ -16,6 +16,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,25 +37,38 @@ public class ReportService {
     AccidentRepository accidentRepository;
     TrafficRepository trafficRepository;
     ApprovalReportRepository approvalReportRepository;
+    RedissonClient redissonClient;
 
     public void submitReport(ReportDto reportDto, User user) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cutoffTime = now.minusMinutes(2);
-        if (
-                reportRepository.existsReportByLocationAndExpiredAt(user.getId(), reportDto.getPoint(), cutoffTime)
-        ) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Duplicated request.");
-
-        switch (reportDto.getType()) {
-            case TYPE_ACCIDENT -> {
-                Accident accident = AccidentMapper.toEntity(reportDto, user);
-                accidentRepository.save(accident);
+        String lockKey = "report_creation_lock_" + user.getId();
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            boolean isLocked = lock.tryLock(60, TimeUnit.SECONDS);
+            if (isLocked) {
+                if (
+                        reportRepository.existsReportByLocationAndExpiredAt(user.getId(), reportDto.getPoint(), cutoffTime)
+                ) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Duplicated request.");
+                switch (reportDto.getType()) {
+                    case TYPE_ACCIDENT -> {
+                        Accident accident = AccidentMapper.toEntity(reportDto, user);
+                        accidentRepository.save(accident);
+                    }
+                    case TYPE_TRAFFIC -> {
+                        Traffic traffic = TrafficMapper.toEntity(reportDto, user);
+                        trafficRepository.save(traffic);
+                    }
+                }
             }
-            case TYPE_TRAFFIC -> {
-                Traffic traffic = TrafficMapper.toEntity(reportDto, user);
-                trafficRepository.save(traffic);
-            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
         }
+
     }
+
 
     public List<ReportDto> getAllUnApprovalReport() {
         return reportRepository.getAllUnApprovalReport()
@@ -61,23 +77,40 @@ public class ReportService {
                 .toList();
     }
 
+
     public void likeReport(Long reportId) {
-        Report report = reportRepository.getReportById(reportId)
-                .orElseThrow(() -> new ReportNotFoundException(reportId));
+        RLock lock = redissonClient.getLock("report-lock:" + reportId);
 
-        report.setLikes(report.getLikes() + 1);
+        try {
+            lock.lock();
 
-        reportRepository.save(report);
+            Report report = reportRepository.getReportById(reportId)
+                    .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+            report.setLikes(report.getLikes() + 1);
+            report.setExpiredTime(LocalDateTime.now().plusMinutes(1));
+
+            reportRepository.save(report);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    //
     public void dislikeReport(Long reportId) {
-        Report report = reportRepository.getReportById(reportId)
-                .orElseThrow(() -> new ReportNotFoundException(reportId));
+        RLock lock = redissonClient.getLock("report-lock:" + reportId);
+        try {
+            lock.lock();
 
-        report.setDislikes(report.getDislikes() + 1);
+            Report report = reportRepository.getReportById(reportId)
+                    .orElseThrow(() -> new ReportNotFoundException(reportId));
 
-        reportRepository.save(report);
+            report.setLikes(report.getLikes() + 1);
+            report.setExpiredTime(LocalDateTime.now().minusMinutes(1));
+
+            reportRepository.save(report);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void approveReport(Long reportId) {
@@ -95,7 +128,9 @@ public class ReportService {
                 .map(ReportMapper::ToDto)
                 .toList();
     }
-
+    public List<Object[]> getTopAccidentHours() {
+        return reportRepository.findTopAccidentHours();
+    }
 
 }
 
