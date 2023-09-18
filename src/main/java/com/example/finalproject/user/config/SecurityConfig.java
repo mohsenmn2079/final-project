@@ -28,10 +28,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomUserDetailsService customUserDetailsService) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> {
-                    authorize.anyRequest().authenticated();
+                    authorize.anyRequest().permitAll();
                 })
-                .httpBasic(Customizer.withDefaults());
-//                .userDetailsService(customUserDetailsService);
+                .httpBasic(Customizer.withDefaults())
+                .userDetailsService(customUserDetailsService);
         return http.build();
     }
 

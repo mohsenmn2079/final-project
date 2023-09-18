@@ -22,15 +22,18 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     String userName;
+    @Column(nullable = false)
     String password;
-    Set<String> authorities;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "roles", nullable = false)
+    Set<UserRole> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities.stream()
-                .map(SimpleGrantedAuthority::new)
+                .map(authority -> new SimpleGrantedAuthority(authority.name()))
                 .collect(Collectors.toSet());
     }
 

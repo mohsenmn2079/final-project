@@ -1,6 +1,7 @@
 package com.example.finalproject.user.service;
 
 import com.example.finalproject.user.entity.User;
+import com.example.finalproject.user.entity.UserRole;
 import com.example.finalproject.user.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
