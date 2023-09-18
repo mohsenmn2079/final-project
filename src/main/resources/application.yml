@@ -5,6 +5,10 @@
 #      authorities:
 #        - ROLE_USER
 #
+report:
+  expiredTime: 2
+  incrementTime: 1
+  decrementTime: 1
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/final_project_db
@@ -18,4 +22,5 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+#        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
         format_sql: true

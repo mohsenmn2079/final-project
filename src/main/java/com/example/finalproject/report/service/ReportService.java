@@ -1,19 +1,27 @@
 package com.example.finalproject.report.service;
 
 import com.example.finalproject.report.Dto.ReportDto;
+import com.example.finalproject.report.Dto.RouteDto;
 import com.example.finalproject.report.entity.*;
+import com.example.finalproject.report.exeption.ReportNotFoundException;
 import com.example.finalproject.report.mapper.AccidentMapper;
 import com.example.finalproject.report.mapper.ReportMapper;
 import com.example.finalproject.report.mapper.TrafficMapper;
 import com.example.finalproject.report.repository.AccidentRepository;
+import com.example.finalproject.report.repository.ApprovalReportRepository;
 import com.example.finalproject.report.repository.ReportRepository;
 import com.example.finalproject.report.repository.TrafficRepository;
 import com.example.finalproject.user.entity.User;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,8 +33,15 @@ public class ReportService {
     ReportRepository reportRepository;
     AccidentRepository accidentRepository;
     TrafficRepository trafficRepository;
+    ApprovalReportRepository approvalReportRepository;
 
     public void submitReport(ReportDto reportDto, User user) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime cutoffTime = now.minusMinutes(2);
+        if (
+                reportRepository.existsReportByLocationAndExpiredAt(user.getId(), reportDto.getPoint(), cutoffTime)
+        ) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Duplicated request.");
+
         switch (reportDto.getType()) {
             case TYPE_ACCIDENT -> {
                 Accident accident = AccidentMapper.toEntity(reportDto, user);
@@ -39,75 +54,48 @@ public class ReportService {
         }
     }
 
-    public List<ReportDto> getAllApprovalReport(){
-        return reportRepository.getAllApprovalReport()
+    public List<ReportDto> getAllUnApprovalReport() {
+        return reportRepository.getAllUnApprovalReport()
                 .stream()
                 .map(ReportMapper::ToDto)
                 .toList();
     }
-//    public void approveReport(Long reportId) {
-//        Report report = reportRepository.findById(reportId)
-//                .orElseThrow(() -> new ReportNotFoundException(reportId));
-//
-//        if (report.getReportType().isOperatorApprovalRequired()) {
-//            // Perform operator approval actions
-//            // ...
-//        }
-//
-//        // Update the approval status
-//        report.setApprovalStatus(ApprovalStatus.APPROVED);
-//
-//        // Save the updated report
-//        reportRepository.save(report);
-//    }
 
-//    public List<ReportDto> getActiveReportsForUserRoute(Double startLat, Double startLng, Double endLat, Double endLng) {
-//        // Implement logic to retrieve active reports for the user's route
-//        // You can use the start and end coordinates to query the database
-//        // and return a list of ReportDto objects
-//        // ...
-//        List<Report> activeReports = reportRepository.findActiveReportsForUserRoute(startLat, startLng, endLat, endLng);
-//        return convertToReportDtoList(activeReports);
-//    }
-//
-//    @Transactional
-//    public void likeReport(Long reportId) {
-//        // Implement report liking logic
-//        // Fetch the report by ID from the database
-//        Report report = reportRepository.findById(reportId)
-//                .orElseThrow(() -> new ReportNotFoundException(reportId));
-//
-//        // Increment the likes count
-//        report.setLikes(report.getLikes() + 1);
-//
-//        // Update the report's activation time (if needed)
-//        // ...
-//
-//        // Save the updated report
-//        reportRepository.save(report);
-//    }
-//
-//    @Transactional
-//    public void dislikeReport(Long reportId) {
-//        // Implement report disliking logic
-//        // Fetch the report by ID from the database
-//        Report report = reportRepository.findById(reportId)
-//                .orElseThrow(() -> new ReportNotFoundException(reportId));
-//
-//        // Decrement the dislikes count
-//        report.setDislikes(report.getDislikes() + 1);
-//
-//        // Update the report's activation time (if needed)
-//        // ...
-//
-//        // Save the updated report
-//        reportRepository.save(report);
-//    }
-//
-//    // Helper method to convert Report entities to ReportDto objects
-//    private List<ReportDto> convertToReportDtoList(List<Report> reports) {
-//        // Implement conversion logic
-//        // ...
-//    }
+    public void likeReport(Long reportId) {
+        Report report = reportRepository.getReportById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+        report.setLikes(report.getLikes() + 1);
+
+        reportRepository.save(report);
+    }
+
+    //
+    public void dislikeReport(Long reportId) {
+        Report report = reportRepository.getReportById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+        report.setDislikes(report.getDislikes() + 1);
+
+        reportRepository.save(report);
+    }
+
+    public void approveReport(Long reportId) {
+        ApprovalReport report = approvalReportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+        report.setApprovalStatus(ApprovalStatus.CONFIRMED);
+        reportRepository.save(report);
+    }
+
+    public List<ReportDto> getActiveReportsForUserRoute(RouteDto routeDto, User user) {
+        return reportRepository
+                .findActiveReportsForUserRoute(routeDto.getRoute())
+                .stream()
+                .map(ReportMapper::ToDto)
+                .toList();
+    }
+
+
 }
 

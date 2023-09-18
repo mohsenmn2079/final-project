@@ -11,15 +11,17 @@ public class ReportMapper {
         report.setTitle(reportDto.getTitle());
         report.setDescription(reportDto.getDescription());
         report.setUser(user);
-//        report.setPoint(new Point(reportDto.getX(), reportDto.getY()));
+        report.setPoint(reportDto.getPoint());
         return report;
     }
+
     public static ReportDto ToDto(Report report) {
         ReportDto reportDto = new ReportDto();
+        reportDto.setId(report.getId());
         reportDto.setTitle(report.getTitle());
         reportDto.setDescription(report.getDescription());
-//        reportDto.setX(report.getPoint().getX());
-//        reportDto.setY(report.getPoint().getY());
+        reportDto.setPoint(report.getPoint());
+        reportDto.setReportType(report);
         return reportDto;
     }
 

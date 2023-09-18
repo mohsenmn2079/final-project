@@ -8,11 +8,11 @@ import org.locationtech.jts.geom.Point;
 
 public class TrafficMapper {
     public static Traffic toEntity(ReportDto reportDto, User user) {
-        return new Traffic(
-                reportDto.getTitle()
-                , reportDto.getDescription()
-                , user
-                , reportDto.getPoint()
-        );
+        Traffic traffic = new Traffic();
+        traffic.setTitle(reportDto.getTitle());
+        traffic.setDescription(reportDto.getDescription());
+        traffic.setUser(user);
+        traffic.setPoint(reportDto.getPoint());
+        return traffic;
     }
 }

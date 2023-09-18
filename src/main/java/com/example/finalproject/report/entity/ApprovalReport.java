@@ -14,12 +14,18 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+//@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorValue("approvalReport")
 public class ApprovalReport extends Report{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
-
     ApprovalReport(String title, String description, User user, Point point){
         super(title,description,user,point);
     }
 }
+
+

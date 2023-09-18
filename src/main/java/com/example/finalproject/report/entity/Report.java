@@ -1,14 +1,14 @@
 package com.example.finalproject.report.entity;
 
 import com.example.finalproject.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -32,14 +32,15 @@ public class Report implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     User user;
 
-    @Column(columnDefinition = "geometry(Point,3857)")
+    @Column(columnDefinition = "Geometry(Point,4326)")
     Point point;
 
-    @Column(nullable = false)
-    Date activationTime = new Date();
+    @CreationTimestamp
+    LocalDateTime creationTime;
+
+    LocalDateTime expiredTime = LocalDateTime.now().plusMinutes(2);
 
     @Column(nullable = false)
     boolean deleteStatus = false;

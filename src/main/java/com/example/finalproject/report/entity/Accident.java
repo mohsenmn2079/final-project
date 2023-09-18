@@ -14,6 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@DiscriminatorValue("accident")
 public class Accident extends ApprovalReport {
     @Id
     Long id;
