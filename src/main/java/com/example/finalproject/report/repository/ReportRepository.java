@@ -41,4 +41,11 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "AND r.deleteStatus = false " +
             "AND (ar IS NULL OR ar.approvalStatus = 'PENDING')")
     Optional<Report> getReportById(@Param("reportId") Long reportId);
+
+    @Query("SELECT HOUR(r.creationTime) AS hour, COUNT(r) AS accidentCount " +
+            "FROM Accident r " +
+            "GROUP BY HOUR(r.creationTime) " +
+            "ORDER BY accidentCount DESC " +
+            "LIMIT 1")
+    List<Object[]> findTopAccidentHours();
 }
