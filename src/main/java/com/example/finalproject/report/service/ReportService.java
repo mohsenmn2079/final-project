@@ -19,6 +19,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,7 +46,7 @@ public class ReportService {
         String lockKey = "report_creation_lock_" + user.getId();
         RLock lock = redissonClient.getLock(lockKey);
         try {
-            boolean isLocked = lock.tryLock(60, TimeUnit.SECONDS);
+            boolean isLocked = lock.tryLock(10, TimeUnit.SECONDS);
             if (isLocked) {
                 if (
                         reportRepository.existsReportByLocationAndExpiredAt(user.getId(), reportDto.getPoint(), cutoffTime)
@@ -130,6 +131,11 @@ public class ReportService {
     }
     public List<Object[]> getTopAccidentHours() {
         return reportRepository.findTopAccidentHours();
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public void removeExpiredReport(){
+        reportRepository.removeReportExpired();
     }
 
 }

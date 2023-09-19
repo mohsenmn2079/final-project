@@ -48,4 +48,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "ORDER BY accidentCount DESC " +
             "LIMIT 1")
     List<Object[]> findTopAccidentHours();
+
+
+    @Query(value = "UPDATE Report r " +
+            "SET r.deleteStatus = true " +
+            "WHERE r.expiredTime = :expiredTime " +
+            "AND (SELECT ar FROM ApprovalReport ar WHERE ar.id = r.id) IS NULL OR " +
+            "(SELECT ar.approvalStatus FROM ApprovalReport ar WHERE ar.id = r.id) = 'CONFIRMED')")
+    void removeReportExpired();
 }

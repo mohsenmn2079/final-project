@@ -28,7 +28,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomUserDetailsService customUserDetailsService) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> {
-                    authorize.anyRequest().permitAll();
+                    authorize.requestMatchers(HttpMethod.POST,"/app/**").authenticated()
+                            .requestMatchers("dashboard/**").hasRole("ADMIN")
+                            .anyRequest().authenticated();
                 })
                 .httpBasic(Customizer.withDefaults())
                 .userDetailsService(customUserDetailsService);
