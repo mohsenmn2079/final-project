@@ -2,7 +2,9 @@ package com.example.finalproject.report.service;
 
 import com.example.finalproject.report.Dto.ReportDto;
 import com.example.finalproject.report.Dto.RouteDto;
+import com.example.finalproject.report.config.ReportConfig;
 import com.example.finalproject.report.entity.*;
+import com.example.finalproject.report.exeption.LikeDislikeException;
 import com.example.finalproject.report.exeption.ReportNotFoundException;
 import com.example.finalproject.report.mapper.AccidentMapper;
 import com.example.finalproject.report.mapper.ReportMapper;
@@ -12,10 +14,10 @@ import com.example.finalproject.report.repository.ApprovalReportRepository;
 import com.example.finalproject.report.repository.ReportRepository;
 import com.example.finalproject.report.repository.TrafficRepository;
 import com.example.finalproject.user.entity.User;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
@@ -24,10 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -41,9 +42,10 @@ public class ReportService {
     RedissonClient redissonClient;
 
     public void submitReport(ReportDto reportDto, User user) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime cutoffTime = now.minusMinutes(2);
-        String lockKey = "report_creation_lock_" + user.getId();
+
+        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(2);
+
+        String lockKey = "report_creation_lock_" + user.getId() + "_" + reportDto.getPoint();
         RLock lock = redissonClient.getLock(lockKey);
         try {
             boolean isLocked = lock.tryLock(10, TimeUnit.SECONDS);
@@ -70,16 +72,7 @@ public class ReportService {
 
     }
 
-
-    public List<ReportDto> getAllUnApprovalReport() {
-        return reportRepository.getAllUnApprovalReport()
-                .stream()
-                .map(ReportMapper::ToDto)
-                .toList();
-    }
-
-
-    public void likeReport(Long reportId) {
+    public void likeReport(Long reportId, Long userId) {
         RLock lock = redissonClient.getLock("report-lock:" + reportId);
 
         try {
@@ -88,7 +81,13 @@ public class ReportService {
             Report report = reportRepository.getReportById(reportId)
                     .orElseThrow(() -> new ReportNotFoundException(reportId));
 
-            report.setLikes(report.getLikes() + 1);
+            if (report.getLikes() == null) {
+                report.setLikes(new HashSet<>());
+            }else
+            if(report.getDislikes().contains(userId)||report.getLikes().contains(userId)){
+                throw new LikeDislikeException(userId,reportId);
+            }
+            report.getLikes().add(userId);
             report.setExpiredTime(LocalDateTime.now().plusMinutes(1));
 
             reportRepository.save(report);
@@ -97,7 +96,7 @@ public class ReportService {
         }
     }
 
-    public void dislikeReport(Long reportId) {
+    public void dislikeReport(Long reportId, Long userId) {
         RLock lock = redissonClient.getLock("report-lock:" + reportId);
         try {
             lock.lock();
@@ -105,7 +104,12 @@ public class ReportService {
             Report report = reportRepository.getReportById(reportId)
                     .orElseThrow(() -> new ReportNotFoundException(reportId));
 
-            report.setLikes(report.getLikes() + 1);
+            if (report.getLikes() == null) {
+                report.setLikes(new HashSet<>());
+            }else if(report.getDislikes().contains(userId)||report.getLikes().contains(userId)){
+                throw new LikeDislikeException(userId,reportId);
+            }
+            report.getDislikes().add(userId);
             report.setExpiredTime(LocalDateTime.now().minusMinutes(1));
 
             reportRepository.save(report);
@@ -114,6 +118,14 @@ public class ReportService {
         }
     }
 
+
+    public List<ReportDto> getAllUnApprovalReport() {
+        return reportRepository.getAllUnApprovalReport()
+                .orElseThrow(() -> new ReportNotFoundException("There are no reports around here"))
+                .stream()
+                .map(ReportMapper::ToDto)
+                .toList();
+    }
     public void approveReport(Long reportId) {
         ApprovalReport report = approvalReportRepository.findById(reportId)
                 .orElseThrow(() -> new ReportNotFoundException(reportId));
@@ -123,19 +135,25 @@ public class ReportService {
         reportRepository.save(report);
     }
 
-    public List<ReportDto> getReportsForUserRoute(RouteDto routeDto, User user) {
+
+
+    public List<ReportDto> getReportsForUserRoute(RouteDto routeDto) {
+        System.out.println(routeDto.getRoute());
         return reportRepository
-                .findActiveReportsForUserRoute(routeDto.getRoute())
+                .getReportsForUserRoute(routeDto.getRoute())
+                .orElseThrow(() -> new ReportNotFoundException("There are no reports around here"))
                 .stream()
                 .map(ReportMapper::ToDto)
                 .toList();
     }
-    public List<Object[]> getTopAccidentHour() {
+
+    public Long getTopAccidentHour() {
         return reportRepository.findTopAccidentHours();
     }
 
+    @Transactional
     @Scheduled(fixedRate = 60000)
-    public void removeExpiredReport(){
+    public void removeExpiredReport() {
         reportRepository.removeReportExpired();
     }
 
