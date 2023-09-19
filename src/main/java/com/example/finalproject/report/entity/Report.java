@@ -1,5 +1,6 @@
 package com.example.finalproject.report.entity;
 
+import com.example.finalproject.report.config.ReportConfig;
 import com.example.finalproject.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +10,9 @@ import org.locationtech.jts.geom.Point;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -40,14 +43,13 @@ public class Report implements Serializable {
     @CreationTimestamp
     LocalDateTime creationTime;
 
-    LocalDateTime expiredTime = LocalDateTime.now().plusMinutes(2);
+    LocalDateTime expiredTime = LocalDateTime.now().plusMinutes(ReportConfig.DURATION_TIME);
 
     @Column(nullable = false)
     boolean deleteStatus = false;
 
-    int likes = 0;
-
-    int dislikes = 0;
+    Set<Long> likes;
+    Set<Long> dislikes;
 
     Report(String title, String description, User user, Point point){
         this.title=title;

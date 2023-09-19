@@ -1,0 +1,4 @@
+userName: admin
+password: $2a$10$4xsEI09vI2RoLUzpoSGxzevbR33SBnIsXgjISzhUP3TOqxOFqFcZq
+authorities:
+  - ROLE_USER

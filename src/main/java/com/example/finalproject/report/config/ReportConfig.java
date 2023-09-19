@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 public class ReportConfig {
     @Value("${report.expiredTime}")
-    public static long EXPIRED_TIME;
+    public static long DURATION_TIME;
     @Value("${report.incrementTime}")
     public static long INCREMENT_TIME;
     @Value("${report.decrementTime}")

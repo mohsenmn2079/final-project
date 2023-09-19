@@ -14,7 +14,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-//@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorValue("approvalReport")
 public class ApprovalReport extends Report{
     @Id

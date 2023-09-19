@@ -1,11 +1,7 @@
 package com.example.finalproject.report.Dto;
 
-import com.example.finalproject.report.entity.Accident;
 import com.example.finalproject.report.entity.Report;
 import com.example.finalproject.report.entity.ReportType;
-import com.example.finalproject.report.entity.Traffic;
-import com.example.finalproject.report.mapper.AccidentMapper;
-import com.example.finalproject.report.mapper.TrafficMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
