@@ -33,7 +33,7 @@ public class Report implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @Column(columnDefinition = "Geometry(Point,4326)")
+    @Column(columnDefinition = "Geometry(Point,3857)")
     Point point;
 
     @CreationTimestamp

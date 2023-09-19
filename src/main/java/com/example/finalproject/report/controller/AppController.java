@@ -6,6 +6,7 @@ import com.example.finalproject.report.service.ReportService;
 import com.example.finalproject.user.entity.User;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.locationtech.jts.geom.Point;
 import org.springframework.http.ResponseEntity;
@@ -32,23 +33,27 @@ public class AppController {
 
 //     API endpoint for liking a report
     @PostMapping("/like/{reportId}")
-    public ResponseEntity<?> likeReport(@PathVariable Long reportId) {
+    public ResponseEntity<String> likeReport(@PathVariable Long reportId) {
         reportService.likeReport(reportId);
         return ResponseEntity.ok("Report liked");
     }
 
 //     API endpoint for disliking a report
     @PostMapping("/dislike/{reportId}")
-    public ResponseEntity<?> dislikeReport(@PathVariable Long reportId) {
+    public ResponseEntity<String> dislikeReport(@PathVariable Long reportId) {
         reportService.dislikeReport(reportId);
         return ResponseEntity.ok("Report disliked");
     }
 
     //     API endpoint for retrieving active reports for a user's route
     @PostMapping ("/routing")
-    public ResponseEntity<?> getActiveReportsForUserRoute(Authentication authentication, @RequestBody RouteDto routeDto) {
+    public ResponseEntity<List<ReportDto>> getReportsForUserRoute(Authentication authentication, @RequestBody RouteDto routeDto) {
         User user = ((User) authentication.getPrincipal());
-        List<ReportDto> activeReports = reportService.getActiveReportsForUserRoute(routeDto,user);
+        List<ReportDto> activeReports = reportService.getReportsForUserRoute(routeDto,user);
         return ResponseEntity.ok(activeReports);
+    }
+    @GetMapping("/top-accident-hour")
+    public ResponseEntity<String> getTopAccidentHour(){
+        return ResponseEntity.ok( "top accident hour :" + reportService.getTopAccidentHour());
     }
 }

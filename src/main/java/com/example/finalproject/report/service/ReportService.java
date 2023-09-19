@@ -119,17 +119,18 @@ public class ReportService {
                 .orElseThrow(() -> new ReportNotFoundException(reportId));
 
         report.setApprovalStatus(ApprovalStatus.CONFIRMED);
+        report.setExpiredTime(LocalDateTime.now().plusMinutes(2));
         reportRepository.save(report);
     }
 
-    public List<ReportDto> getActiveReportsForUserRoute(RouteDto routeDto, User user) {
+    public List<ReportDto> getReportsForUserRoute(RouteDto routeDto, User user) {
         return reportRepository
                 .findActiveReportsForUserRoute(routeDto.getRoute())
                 .stream()
                 .map(ReportMapper::ToDto)
                 .toList();
     }
-    public List<Object[]> getTopAccidentHours() {
+    public List<Object[]> getTopAccidentHour() {
         return reportRepository.findTopAccidentHours();
     }
 
