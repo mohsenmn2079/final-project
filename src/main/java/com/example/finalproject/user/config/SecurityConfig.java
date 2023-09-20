@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize) -> {
                     authorize.requestMatchers("app/**").authenticated()
                             .requestMatchers("dashboard/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST,"user/register").permitAll()
                             .anyRequest().authenticated();
                 })
                 .httpBasic(Customizer.withDefaults())

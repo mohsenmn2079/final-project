@@ -43,10 +43,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "WHERE r.deleteStatus = false " +
             "AND (ar IS NULL OR ar.approvalStatus = 'CONFIRMED')" +
             "AND ST_DWithin(r.point, :route, 10.0 ,false ) = true")
-//    @Query("SELECT r FROM Report r " +
-//            "WHERE ST_DWithin(r.point, :route, 10.0 ,false ) = true")
-    Optional<List<Report>> getReportsForUserRoute(@Param("route") LineString route);
 
+    Optional<List<Report>> getReportsForUserRoute(@Param("route") LineString route);
 
     @Modifying
     @Query("UPDATE Report r " +

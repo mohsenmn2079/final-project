@@ -1,7 +1,9 @@
 package com.example.finalproject.user.service;
 
+import com.example.finalproject.user.Mapper.UserMapper;
+import com.example.finalproject.user.dto.UserDto;
 import com.example.finalproject.user.entity.User;
-import com.example.finalproject.user.entity.UserRole;
+import com.example.finalproject.user.exeption.UserNotFoundException;
 import com.example.finalproject.user.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,14 +18,11 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
     UserRepository userRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        for (User user : userRepository.findAll()) {
-            if (user.getUsername().equals(username)) {
-                return user;
-            }
-        }
-        throw new UsernameNotFoundException("User not found");
+        return userRepository.findUserByUserName(username)
+                .orElseThrow(UserNotFoundException::new);
     }
 }
 
